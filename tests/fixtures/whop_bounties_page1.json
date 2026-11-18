@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "id": "bnty_gta1",
+      "title": "GTA 6 launch week clips - streamer_gta_one",
+      "description": "Clip streamer_gta_one's GTA 6 streams. Post on TikTok and YouTube Shorts. Tag @streamer_gta_one and use #gta6 #ad. 15-60 seconds.",
+      "status": "open",
+      "business_goal_type": "clipping",
+      "gross_reward_amount": 25.0,
+      "net_reward_amount": 22.5,
+      "currency": "USD",
+      "budget_amount": 10000,
+      "gross_paid_out_amount": 1000,
+      "spots_remaining": 200,
+      "unresolved_submissions_count": 20,
+      "allowed_country_codes": ["us", "ca"],
+      "created_at": "2026-11-18T19:40:00Z",
+      "submissions_closed_at": "2026-12-01T00:00:00Z"
+    },
+    {
+      "id": "bnty_casino",
+      "title": "Kick slots highlights",
+      "description": "Clip slots streams from Kick. Every post must show the casino logo and include promo code WIN100 in the caption. TikTok only.",
+      "status": "open",
+      "business_goal_type": "clipping",
+      "gross_reward_amount": 40.0,
+      "net_reward_amount": 36.0,
+      "currency": "usd",
+      "budget_amount": 20000,
+      "gross_paid_out_amount": 2000,
+      "spots_remaining": 500,
+      "unresolved_submissions_count": 5,
+      "allowed_country_codes": [],
+      "created_at": "2026-11-18T19:00:00Z"
+    }
+  ],
+  "page_info": {"has_next_page": true, "end_cursor": "cur1"}
+}

@@ -1,0 +1,31 @@
+# Weights add up to 100. Tune after real payouts come in.
+weights:
+  pay_rate: 30
+  budget_left: 20
+  niche_fit: 20
+  bank_ready: 15
+  freshness: 10
+  competition: 5
+
+filters:
+  min_budget_left_pct: 30        # skip campaigns with less than this % of budget left
+  my_platforms: [tiktok, instagram, youtube]
+
+alerts:
+  instant_min_score: 75          # phone alert right away
+  digest_min_score: 50           # twice-daily digest
+  quiet_hours: [23, 8]           # local hours, alerts held unless score >= quiet_override
+  quiet_override: 90
+  timezone: America/New_York
+
+tiers:                           # niche-fit points as a fraction of the weight
+  1: 1.0
+  2: 0.6
+  3: 0.2
+
+freshness:
+  boost_hours: 1                 # full marks under this age
+  zero_after_hours: 48
+
+bank:
+  ready_clips_for_full_marks: 3

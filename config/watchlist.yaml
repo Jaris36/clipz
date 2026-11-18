@@ -1,0 +1,19 @@
+# Streamers the scout cares about. Tier 1 scores highest.
+# Preston chose GTA and gambling Kick streamers as starting niches (2026-11-18).
+# Fill in real channel names; the ones below are placeholders.
+niches:
+  gta:
+    tier: 1
+    keywords: ["gta", "gta 6", "gta vi", "gta rp", "nopixel", "grand theft auto"]
+  kick_gambling:
+    tier: 1
+    keywords: ["slots", "gambling", "casino stream", "kick gambling"]
+    gambling: true
+
+streamers: []
+#  - name: example_gta_streamer
+#    platform: twitch        # twitch | kick | youtube
+#    niche: gta
+#  - name: example_kick_streamer
+#    platform: kick
+#    niche: kick_gambling

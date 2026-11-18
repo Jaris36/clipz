@@ -1,0 +1,7 @@
+# Campaigns added by hand. Example:
+# - id: kick-streamer-program-1
+#   title: "Example Kick streamer clipper program"
+#   description: "Pays $40 per 100K views. Tag @streamer. TikTok and Shorts only."
+#   link: "https://discord.gg/..."
+#   pay_per_1k_views: 0.40
+[]
