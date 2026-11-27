@@ -1,0 +1,19 @@
+# Moment scoring. Tuned weekly from tracked views (phase 5).
+window_seconds: 10
+chat_lag_seconds: 8          # chat reacts a few seconds after the moment
+weights:
+  chat: 1.0                  # message-rate spike, robust z-score
+  emotes: 0.6                # share of laugh / hype / "clip it" messages
+  viewer_clips: 1.5          # viewer-made clips covering the window
+  audio: 0.4                 # loudness spike
+moments_per_vod: 15
+min_gap_seconds: 60          # two moments must be at least this far apart
+max_core_seconds: 60         # longest moment before padding
+padding_seconds: 20          # added each side so the renderer can pick the cut
+min_score: 1.0
+
+tokens:
+  funny: [KEKW, LUL, LULW, OMEGALUL, ICANT, LMAO, LMFAO, "😂", "🤣", haha, xD, pepeLaugh, Kappa]
+  hype: [POG, POGGERS, PogChamp, Pog, PogU, "NO WAY", "W ", WWW, "BIG WIN", "MAX WIN", EZ, LETSGO, "LET'S GO", "🔥"]
+  shock: [WTF, monkaS, monkaW, "D:", OMG, "HOLY", "?????"]
+  clip: [clip, clipit, "clip it", "CLIP THAT", "clip that"]

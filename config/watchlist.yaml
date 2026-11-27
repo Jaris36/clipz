@@ -17,3 +17,8 @@ streamers: []
 #  - name: example_kick_streamer
 #    platform: kick
 #    niche: kick_gambling
+#
+# The clipping pipeline only clips streamers that also have a permission record:
+#    permission:
+#      type: campaign          # campaign | clipper_program | direct_deal
+#      proof: https://...      # link to the campaign, clipper rules or agreement

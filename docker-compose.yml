@@ -1,0 +1,18 @@
+# CLIPZ on the VPS. Secrets come from .env (never committed).
+# Phase 1 runs the moment finder and the Kick chat recorder.
+# OpenShorts (phase 2), the review page (phase 3) and the scout loop join later.
+services:
+  kick-chat:
+    build: .
+    command: ["python", "-m", "clipz.pipeline", "record-kick-chat"]
+    env_file: .env
+    volumes: ["./data:/app/data", "./config:/app/config:ro"]
+    restart: unless-stopped
+
+  watcher:
+    build: .
+    # One pass every hour: new VODs -> chat + viewer clips -> ranked moments.
+    command: ["sh", "-c", "python -m clipz.pipeline init && while true; do python -m clipz.pipeline watch; sleep 3600; done"]
+    env_file: .env
+    volumes: ["./data:/app/data", "./config:/app/config:ro"]
+    restart: unless-stopped
