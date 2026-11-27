@@ -60,5 +60,40 @@ Moment scoring weights live in `config/moment_scoring.yaml`.
 | `clipz/pipeline/run.py` | Watch pass: VODs to ranked moments in the database |
 | `clipz/pipeline/smoke.py` | Day-one reachability test for Kick and Twitch |
 
-Still to come: Telegram alerts (Phase 2), live Whop data (Phase 3), clip bank fed by the
-pipeline (Phase 4), approve to post to submit (Phase 5).
+## Telegram alerts (Phase 2)
+
+`python -m clipz.notify` sends what the scout and pipeline find to your private Telegram chat:
+
+| Alert | When |
+| --- | --- |
+| Campaign, instant | Score 75+ (the scout holds these overnight unless 90+) |
+| Campaign digest | Scores 50 to 74, batched at 9 AM and 6 PM (`digest_hours` in `config/scoring.yaml`) |
+| Budget warning | A campaign you joined is closing or under 15% budget (held during quiet hours) |
+| Strong moment | A ranked moment scores at least `clip_alerts.min_score` in `config/moment_scoring.yaml` |
+
+Buttons only record your choice (table `alert_choices`). **I joined** marks the campaign
+joined so budget warnings start, **Skip** marks it skipped, **Interested** just notes it.
+Nothing joins, posts or submits from Telegram. You join campaigns on Whop yourself.
+Taps from any chat other than `TELEGRAM_CHAT_ID` are ignored. Each alert is sent at most once.
+
+Setup, about 2 minutes, once the server exists:
+1. In Telegram, message **@BotFather**, send `/newbot`, pick a name. Put the token it gives you in `.env` as `TELEGRAM_BOT_TOKEN`.
+2. Open your new bot and send it "hi". Run `python -m clipz.notify whoami` and copy the `TELEGRAM_CHAT_ID=...` line into `.env`.
+3. `python -m clipz.notify test` sends one test message. Then `docker compose up -d notifier`.
+
+With the token or chat id empty it runs as a dry run and prints alerts instead of sending.
+
+```
+python -m clipz.notify once      # one send pass
+python -m clipz.notify           # loop: sends about every minute, listens for button taps
+```
+
+| File | What it does |
+| --- | --- |
+| `clipz/notify/telegram.py` | Bot API client (sendMessage, getUpdates, button edits) and a dry-run client |
+| `clipz/notify/messages.py` | Alert text and buttons |
+| `clipz/notify/notifier.py` | Send passes, digest timing, quiet hours, button taps |
+| `clipz/notify/schema.py` | `clip_alerts`, `alert_choices`, `notify_state` tables |
+
+Still to come: live Whop data (Phase 3), clip bank fed by the pipeline (Phase 4),
+approve to post to submit (Phase 5).

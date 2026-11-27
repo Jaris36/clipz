@@ -16,3 +16,11 @@ services:
     env_file: .env
     volumes: ["./data:/app/data", "./config:/app/config:ro"]
     restart: unless-stopped
+
+  notifier:
+    build: .
+    # Phase 2: sends scout and clip alerts to Telegram and records button taps. Never posts.
+    command: ["python", "-m", "clipz.notify"]
+    env_file: .env
+    volumes: ["./data:/app/data", "./config:/app/config:ro"]
+    restart: unless-stopped

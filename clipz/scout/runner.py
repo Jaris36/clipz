@@ -4,7 +4,7 @@ Run once:        python -m clipz.scout.runner --once
 Run forever:     python -m clipz.scout.runner          (every 10 minutes)
 
 Never joins, posts or submits. Alerts are queued in the alerts table; the Telegram
-notifier (Phase 2) sends them. Until then they print to the console.
+notifier (python -m clipz.notify) sends them. They also print to the console here.
 """
 from __future__ import annotations
 

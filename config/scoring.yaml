@@ -16,6 +16,7 @@ alerts:
   digest_min_score: 50           # twice-daily digest
   quiet_hours: [23, 8]           # local hours, alerts held unless score >= quiet_override
   quiet_override: 90
+  digest_hours: [9, 18]          # local hours the digest goes out (Telegram notifier)
   timezone: America/New_York
 
 tiers:                           # niche-fit points as a fraction of the weight

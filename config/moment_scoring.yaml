@@ -17,3 +17,13 @@ tokens:
   hype: [POG, POGGERS, PogChamp, Pog, PogU, "NO WAY", "W ", WWW, "BIG WIN", "MAX WIN", EZ, LETSGO, "LET'S GO", "🔥"]
   shock: [WTF, monkaS, monkaW, "D:", OMG, "HOLY", "?????"]
   clip: [clip, clipit, "clip it", "CLIP THAT", "clip that"]
+
+# Telegram pings for strong moments (python -m clipz.notify). Scores here are not 0-100:
+# a moment's score is the weighted sum above (min_score 1.0 to be kept at all).
+# Start strict and lower it once real VODs show what a great moment scores.
+clip_alerts:
+  enabled: true
+  min_score: 4.0
+  max_per_vod: 2             # best moments only
+  max_per_day: 10
+  max_age_hours: 48          # ignore older moments (stops a flood on first start)
