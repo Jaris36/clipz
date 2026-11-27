@@ -1,0 +1,32 @@
+# Phase 2: turning ranked moments into vertical clips.
+openshorts_url: http://openshorts:8000   # the OpenShorts backend service in docker-compose
+renders_per_run: 10                      # clips rendered per pass (CPU: ~1-2 min each)
+segment_height: 1080                     # source quality to download
+clip_min_seconds: 15                     # OpenShorts won't cut shorter than 15 s
+clip_max_seconds: 60
+captions: true
+auto_hook: true
+job_timeout_seconds: 1800
+
+# Gambling niche: show only the streamer's face camera, never the casino screen.
+gambling_niches: [kick_gambling]
+facecam:
+  sample_frames: 12          # frames checked to find the face camera
+  padding: 0.35              # extra space around the detected face, as a share of its size
+
+# Words that must never appear on screen, in the hook or in captions on gambling
+# clips. Matched case-insensitively. Edit freely.
+banned_text:
+  casinos: [stake, roobet, rollbit, shuffle, gamdom, duelbits, bc.game, rainbet, stake.us,
+            chips.gg, razed, gamba, thrill, howl, metaspins, winna, packdraw, csgoroll, clash.gg]
+  phrases: ["promo code", "use code", "code:", "sign up", "signup", "deposit bonus",
+            "free spins", "affiliate", "referral", "link in bio", "18+ gamble responsibly"]
+  patterns:                  # regular expressions
+    - '\b[a-z0-9-]+\.(com|gg|io|us|bet|casino|net)\b'   # any web address
+    - '\bcode\s+[A-Z0-9]{3,}\b'                         # "code XYZ123"
+
+# Music flag: mostly loud audio with little talking is likely background music,
+# which Content ID will claim. Flagged clips still go to review.
+music:
+  max_words_per_second: 0.6
+  min_mean_lufs: -24

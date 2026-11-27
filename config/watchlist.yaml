@@ -22,3 +22,6 @@ streamers: []
 #    permission:
 #      type: campaign          # campaign | clipper_program | direct_deal
 #      proof: https://...      # link to the campaign, clipper rules or agreement
+#    facecam: {x: 0.75, y: 0.0, w: 0.25, h: 0.33}   # optional: where the face camera sits,
+#                              # as fractions of the frame. Gambling clips show only this box.
+#                              # Leave it out and the face is detected automatically.

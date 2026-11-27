@@ -33,6 +33,15 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("watch", help="one pass: find new VODs for every source and rank moments")
     sub.add_parser("record-kick-chat", help="run forever, recording Kick chat while streamers are live")
 
+    r = sub.add_parser("render", help="render the best candidate clips through OpenShorts")
+    r.add_argument("--limit", type=int, help="clips to render this pass (default: render.yaml)")
+
+    rf = sub.add_parser("render-file", help="render one local video file (for testing)")
+    rf.add_argument("video", type=Path)
+    rf.add_argument("--gambling", action="store_true", help="apply the facecam crop and casino-text check")
+    rf.add_argument("--facecam", help="facecam box as fractions x,y,w,h (default: detect the face)")
+    rf.add_argument("--out", type=Path, default=Path("data/samples"))
+
     m = sub.add_parser("moments", help="show ranked moments stored for recent VODs")
     m.add_argument("--limit", type=int, default=3)
 
@@ -47,7 +56,11 @@ def main(argv: list[str] | None = None) -> int:
         except ConfigError as e:
             print(f"Database ready at {settings.db_path}. Streamers not loaded: {e}")
             return 1
-        n = sync_streamers(conn, streamers)
+        try:
+            n = sync_streamers(conn, streamers)
+        except ConfigError as e:
+            print(f"Database ready at {settings.db_path}. Streamers not loaded: {e}")
+            return 1
         print(f"Database ready at {settings.db_path}; {n} streamers will be clipped.")
         for reason in skipped:
             print(f"  skipped {reason}")
@@ -95,6 +108,18 @@ def main(argv: list[str] | None = None) -> int:
         asyncio.run(run(settings))
         return 0
 
+    if args.cmd == "render":
+        from clipz.pipeline.render.stage import render_pending
+        outcomes = render_pending(conn, settings, args.limit)
+        for o in outcomes:
+            print(f"{o.clip_id}: {o.state} ({o.detail})")
+        if not outcomes:
+            print("No candidate clips to render.")
+        return 0
+
+    if args.cmd == "render-file":
+        return _render_file(args, settings)
+
     if args.cmd == "moments":
         vods = conn.execute(
             """SELECT v.id, v.title, v.url, s.channel FROM vods v JOIN streamers s ON s.id = v.streamer_id
@@ -105,6 +130,39 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {int(m['start_s']):>6}s-{int(m['end_s']):>6}s  score {m['score']:.2f}  {m['moment_type']}")
         return 0
     return 1
+
+
+def _render_file(args, settings) -> int:
+    from clipz.pipeline.render import facecam as fc
+    from clipz.pipeline.render.guards import casino_text_hits, integrated_loudness, is_music_heavy
+    from clipz.pipeline.render.openshorts import OpenShortsClient
+
+    cfg = settings.render
+    args.out.mkdir(parents=True, exist_ok=True)
+    source = args.video
+    if args.gambling:
+        box = None
+        if args.facecam:
+            x, y, w, h = (float(v) for v in args.facecam.split(","))
+            box = {"x": x, "y": y, "w": w, "h": h}
+        source, found = fc.facecam_only(args.video, args.out / f"{args.video.stem}-facecam.mp4", box)
+        print(f"Cropped to face camera {found}")
+    client = OpenShortsClient(settings.openshorts_url, settings.gemini_api_key or None)
+    job = client.submit(source, int(cfg.get("clip_min_seconds", 15)), int(cfg.get("clip_max_seconds", 60)))
+    print(f"OpenShorts job {job} started")
+    clips = client.wait(job, float(cfg.get("job_timeout_seconds", 1800)))
+    if not clips:
+        print("OpenShorts returned no clip.")
+        return 1
+    out = client.download(clips[0], args.out / f"{args.video.stem}-vertical.mp4")
+    words = client.transcript_words(job, 0)
+    dur = (clips[0].end - clips[0].start) if clips[0].start is not None and clips[0].end is not None else 0
+    print(f"Saved {out}\nHook: {clips[0].hook}\nMusic flag: {is_music_heavy(words, dur, integrated_loudness(out), cfg) if words else 'no transcript'}")
+    if args.gambling:
+        caption = " ".join(str(w.get('word', '')) for w in words)
+        hits = casino_text_hits(out, clips[0].hook, caption, cfg)
+        print("Casino text: " + ("; ".join(f"{h.where}: {h.text!r}" for h in hits) if hits else "none found"))
+    return 0
 
 
 if __name__ == "__main__":

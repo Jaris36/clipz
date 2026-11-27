@@ -1,6 +1,6 @@
 # CLIPZ on the VPS. Secrets come from .env (never committed).
-# Phase 1 runs the moment finder and the Kick chat recorder.
-# OpenShorts (phase 2), the review page (phase 3) and the scout loop join later.
+# Pipeline: moment finder, Kick chat recorder, renderer (OpenShorts).
+# The review page (phase 3) and the scout loop join later.
 services:
   kick-chat:
     build: .
@@ -23,4 +23,25 @@ services:
     command: ["python", "-m", "clipz.notify"]
     env_file: .env
     volumes: ["./data:/app/data", "./config:/app/config:ro"]
+    restart: unless-stopped
+
+  renderer:
+    build: .
+    # Every 15 minutes: best candidate moments -> vertical captioned clips (state "rendered").
+    command: ["sh", "-c", "while true; do python -m clipz.pipeline render; sleep 900; done"]
+    env_file: .env
+    environment:
+      - OPENSHORTS_URL=http://openshorts:8000
+    volumes: ["./data:/app/data", "./config:/app/config:ro"]
+    depends_on: [openshorts]
+    restart: unless-stopped
+
+  openshorts:
+    # OpenShorts (MIT core), pinned to the commit Phase 2 was built against (2026-11-26).
+    # CPU-only. Reads GEMINI_API_KEY from .env. Not exposed outside the server.
+    build:
+      context: https://github.com/mutonby/openshorts.git#cc07e6d1cd84bdbdba4f635949e26ed8433444c9
+    env_file: .env
+    volumes: ["./data/openshorts:/app/output"]
+    expose: ["8000"]
     restart: unless-stopped

@@ -45,6 +45,17 @@ python -m clipz.pipeline analyze --duration 3600 --twitch-chat chat.json   # off
 docker compose up -d --build           # on the VPS
 ```
 
+### Phase 2: rendering
+
+`python -m clipz.pipeline render` takes the best `candidate` clips, downloads just that
+moment, and sends it to a self-hosted OpenShorts (pinned in `docker-compose.yml`) for the
+9:16 reframe, burned-in captions and a hook. Results become `rendered` clips with a file,
+hook and caption, ready for review. Gambling streamers (`gambling_niches` in
+`config/render.yaml`) are cropped to their face camera first, and a clip is rejected if a
+casino name, web address or promo code shows up on screen (OCR), in the hook or in the
+captions. Loud, nearly wordless clips get `music_flag = 1`. Test on one file with
+`python -m clipz.pipeline render-file video.mp4 [--gambling]`.
+
 Only streamers with a `permission` record in `config/watchlist.yaml` are clipped.
 Moment scoring weights live in `config/moment_scoring.yaml`.
 
@@ -59,6 +70,10 @@ Moment scoring weights live in `config/moment_scoring.yaml`.
 | `clipz/pipeline/rank.py` | Merges signals and picks moments |
 | `clipz/pipeline/run.py` | Watch pass: VODs to ranked moments in the database |
 | `clipz/pipeline/smoke.py` | Day-one reachability test for Kick and Twitch |
+| `clipz/pipeline/render/openshorts.py` | Client for the self-hosted OpenShorts API |
+| `clipz/pipeline/render/facecam.py` | Finds the face camera and crops gambling clips to it |
+| `clipz/pipeline/render/guards.py` | Casino-text check (OCR) and the music flag |
+| `clipz/pipeline/render/stage.py` | Render pass: candidate to rendered or rejected |
 
 ## Telegram alerts (Phase 2)
 
