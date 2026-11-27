@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ffmpeg curl unzip ca-certificates libicu-dev libfontconfig1 \
+ && apt-get install -y --no-install-recommends ffmpeg curl unzip ca-certificates libicu-dev libfontconfig1 tesseract-ocr \
  && rm -rf /var/lib/apt/lists/*
 
 # TwitchDownloaderCLI (MIT) for Twitch chat logs and VOD segments.

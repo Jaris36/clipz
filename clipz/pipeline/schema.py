@@ -115,6 +115,16 @@ CLIP_COLUMNS = {
     "reject_reason": "TEXT",
     "approved_at": "TEXT",
     "updated_at": "TEXT",
+    # Phase 2: rendering
+    "render_attempts": "INTEGER NOT NULL DEFAULT 0",
+    "render_error": "TEXT",
+    "openshorts_job": "TEXT",
+    "rendered_at": "TEXT",
+}
+
+# Columns added to streamers after Phase 1.
+STREAMER_COLUMNS = {
+    "facecam": "TEXT",   # JSON {x, y, w, h} as fractions of the frame, optional
 }
 
 
@@ -124,6 +134,10 @@ def ensure(conn: sqlite3.Connection) -> None:
     for name, ddl in CLIP_COLUMNS.items():
         if name not in have:
             conn.execute(f"ALTER TABLE clips ADD COLUMN {name} {ddl}")
+    have = {r[1] for r in conn.execute("PRAGMA table_info(streamers)")}
+    for name, ddl in STREAMER_COLUMNS.items():
+        if name not in have:
+            conn.execute(f"ALTER TABLE streamers ADD COLUMN {name} {ddl}")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_clips_moment ON clips(moment_id)")
     conn.commit()
 

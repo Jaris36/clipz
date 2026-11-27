@@ -1,6 +1,7 @@
 """Pipeline settings. Shares .env and config/watchlist.yaml with the scout."""
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from dataclasses import dataclass, field
@@ -35,12 +36,20 @@ class PipelineSettings:
     kick_proxy: str = ""
     twitch_downloader_cli: str = "TwitchDownloaderCLI"
     scoring: dict = field(default_factory=dict)
+    render: dict = field(default_factory=dict)
+    gemini_api_key: str = ""
+
+    @property
+    def openshorts_url(self) -> str:
+        return os.environ.get("OPENSHORTS_URL") or self.render.get("openshorts_url", "http://openshorts:8000")
 
     @classmethod
     def load(cls) -> "PipelineSettings":
         load_dotenv()
         scoring_file = CONFIG_DIR / "moment_scoring.yaml"
         scoring = yaml.safe_load(scoring_file.read_text()) if scoring_file.exists() else {}
+        render_file = CONFIG_DIR / "render.yaml"
+        render = yaml.safe_load(render_file.read_text()) if render_file.exists() else {}
         db_path = Path(os.environ.get("CLIPZ_DB_PATH", ROOT / "data" / "clipz.db"))
         if not db_path.is_absolute():
             db_path = ROOT / db_path
@@ -52,6 +61,8 @@ class PipelineSettings:
             kick_proxy=os.environ.get("KICK_PROXY", ""),
             twitch_downloader_cli=os.environ.get("TWITCH_DOWNLOADER_CLI", "TwitchDownloaderCLI"),
             scoring=scoring or {},
+            render=render or {},
+            gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
         )
 
 
@@ -93,16 +104,30 @@ def sync_streamers(conn: sqlite3.Connection, streamers: list[dict]) -> int:
         key = (s["platform"], s["name"].lower())
         seen.add(key)
         conn.execute(
-            """INSERT INTO streamers (platform, channel, niche, permission_type, permission_proof, active)
-               VALUES (?, ?, ?, ?, ?, ?)
+            """INSERT INTO streamers (platform, channel, niche, permission_type, permission_proof, active, facecam)
+               VALUES (?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT (platform, channel) DO UPDATE SET
                  niche = excluded.niche, permission_type = excluded.permission_type,
-                 permission_proof = excluded.permission_proof, active = excluded.active""",
+                 permission_proof = excluded.permission_proof, active = excluded.active,
+                 facecam = excluded.facecam""",
             (key[0], key[1], s["niche"], s["permission"]["type"], s["permission"]["proof"],
-             1 if s.get("active", True) else 0),
+             1 if s.get("active", True) else 0, _facecam_json(s.get("facecam"))),
         )
     for row in conn.execute("SELECT id, platform, channel FROM streamers WHERE active = 1").fetchall():
         if (row["platform"], row["channel"]) not in seen:
             conn.execute("UPDATE streamers SET active = 0 WHERE id = ?", (row["id"],))
     conn.commit()
     return len(seen)
+
+
+def _facecam_json(box) -> str | None:
+    """Validate an optional facecam box: fractions of the frame, e.g. {x: 0.7, y: 0.0, w: 0.3, h: 0.3}."""
+    if not box:
+        return None
+    try:
+        vals = {k: float(box[k]) for k in ("x", "y", "w", "h")}
+    except (KeyError, TypeError, ValueError):
+        raise ConfigError(f"facecam must have x, y, w, h as fractions of the frame, got {box!r}")
+    if not all(0 <= v <= 1 for v in vals.values()) or vals["x"] + vals["w"] > 1 or vals["y"] + vals["h"] > 1:
+        raise ConfigError(f"facecam box must sit inside the frame (values 0 to 1), got {box!r}")
+    return json.dumps(vals)

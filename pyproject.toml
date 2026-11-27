@@ -10,6 +10,7 @@ dependencies = [
   "anthropic>=0.60",
   "websockets>=12.0",     # pipeline: Kick chat recorder
   "yt-dlp>=2026.1.1",     # pipeline: VOD segment downloads
+  "opencv-python-headless>=4.10",  # pipeline: facecam detection and OCR prep
 ]
 
 [project.optional-dependencies]
